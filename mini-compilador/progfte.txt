@@ -1,0 +1,61 @@
+============================================================
+       REPORTE DE COMPILACIÓN - MINI-LENGUAJE
+============================================================
+
+1. ANÁLISIS LÉXICO (LISTA DE TOKENS)
+----------------------------------------
+Línea    Tipo de Token      Valor          
+----------------------------------------
+2        LOGICO_TIPO        'logico'       
+2        ID                 'llueve'       
+2        ASIGNAR            '='            
+2        FALSO              'falso'        
+2        PUNTOCOM           ';'            
+3        LOGICO_TIPO        'logico'       
+3        ID                 'frio'         
+3        ASIGNAR            '='            
+3        VERDADERO          'verdadero'    
+3        PUNTOCOM           ';'            
+5        SI                 'si'           
+5        PAR_IZQ            '('            
+5        NO                 'no'           
+5        ID                 'llueve'       
+5        O                  'o'            
+5        ID                 'frio'         
+5        PAR_DER            ')'            
+5        LLA_IZQ            '{'            
+6        MOSTRAR            'mostrar'      
+6        PAR_IZQ            '('            
+6        NUMERO             1              
+6        PAR_DER            ')'            
+6        PUNTOCOM           ';'            
+7        LLA_DER            '}'            
+7        SINO               'sino'         
+7        LLA_IZQ            '{'            
+8        MOSTRAR            'mostrar'      
+8        PAR_IZQ            '('            
+8        NUMERO             0              
+8        PAR_DER            ')'            
+8        PUNTOCOM           ';'            
+9        LLA_DER            '}'            
+11       MOSTRAR            'mostrar'      
+11       PAR_IZQ            '('            
+11       ID                 'llueve'       
+11       PAR_DER            ')'            
+11       PUNTOCOM           ';'            
+12       MOSTRAR            'mostrar'      
+12       PAR_IZQ            '('            
+12       ID                 'frio'         
+12       PAR_DER            ')'            
+12       PUNTOCOM           ';'            
+
+
+2. TABLA DE SÍMBOLOS (ESTADO FINAL)
+----------------------------------------
+Variable        Tipo         Valor Final    
+----------------------------------------
+llueve          logico       falso          
+frio            logico       verdadero      
+
+============================================================
+FIN DEL REPORTE

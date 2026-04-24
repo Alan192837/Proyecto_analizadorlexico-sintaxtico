@@ -1,0 +1,27 @@
+
+//Sumando numeros pedidos al usuario:
+
+//Zona de declaracion de variables
+entero numero1 = 0;
+entero numero2= 0;
+
+//Pedimos los datos al usuario
+mostrar("Operaciones con numeros proporcionados por el usuario: ");
+mostrar("Ingrese el primer numero:");
+leer(numero1);
+mostrar("Ingrese el segundo numero:");
+leer(numero2);
+
+//Pedimos el signo al usuario para saber la operacion 
+mostrar("Ingrese el simbolo de la operacion la cual quiere realizar:");
+cadena simbolo = " ";
+leer(simbolo);
+
+//Evaluamos los casos de las operaciones
+si(simbolo == "+"){
+    mostrar("El resultado de la operacion es: " +  (numero1 + numero2));
+}sino{
+    si(simbolo == "-"){
+        mostrar("El resultado de la operacion es: " + (numero1 - numero2));
+    }
+}

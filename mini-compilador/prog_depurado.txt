@@ -1,0 +1,12 @@
+
+logicollueve=falso;
+logicofrio=verdadero;
+
+si(nollueveofrio){
+mostrar(1);
+}sino{
+mostrar(0);
+}
+
+mostrar(llueve);
+mostrar(frio);
