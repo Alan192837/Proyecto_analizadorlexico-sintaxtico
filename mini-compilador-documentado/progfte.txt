@@ -1,0 +1,78 @@
+============================================================
+       REPORTE DE COMPILACIÓN - MINI-LENGUAJE
+============================================================
+
+1. ANÁLISIS LÉXICO (LISTA DE TOKENS)
+----------------------------------------
+Línea    Tipo de Token      Valor          
+----------------------------------------
+5        ENTERO             'entero'       
+5        ID                 'a'            
+5        ASIGNAR            '='            
+5        NUMERO             10             
+5        PUNTOCOM           ';'            
+6        ENTERO             'entero'       
+6        ID                 'b'            
+6        ASIGNAR            '='            
+6        NUMERO             20             
+6        PUNTOCOM           ';'            
+9        MOSTRAR            'mostrar'      
+9        PAR_IZQ            '('            
+9        LITERAL_CADENA     'Impresion de valores de operacions '
+9        PAR_DER            ')'            
+9        PUNTOCOM           ';'            
+11       MOSTRAR            'mostrar'      
+11       PAR_IZQ            '('            
+11       LITERAL_CADENA     'Suma: '       
+11       MAS                '+'            
+11       PAR_IZQ            '('            
+11       ID                 'a'            
+11       MAS                '+'            
+11       ID                 'b'            
+11       PAR_DER            ')'            
+11       PAR_DER            ')'            
+11       PUNTOCOM           ';'            
+12       MOSTRAR            'mostrar'      
+12       PAR_IZQ            '('            
+12       LITERAL_CADENA     'Resta: '      
+12       MAS                '+'            
+12       PAR_IZQ            '('            
+12       ID                 'a'            
+12       MENOS              '-'            
+12       ID                 'b'            
+12       PAR_DER            ')'            
+12       PAR_DER            ')'            
+12       PUNTOCOM           ';'            
+13       MOSTRAR            'mostrar'      
+13       PAR_IZQ            '('            
+13       LITERAL_CADENA     'Multiplicacion: '
+13       MAS                '+'            
+13       PAR_IZQ            '('            
+13       ID                 'a'            
+13       POR                '*'            
+13       ID                 'b'            
+13       PAR_DER            ')'            
+13       PAR_DER            ')'            
+13       PUNTOCOM           ';'            
+14       MOSTRAR            'mostrar'      
+14       PAR_IZQ            '('            
+14       LITERAL_CADENA     'Division: '   
+14       MAS                '+'            
+14       PAR_IZQ            '('            
+14       ID                 'a'            
+14       ENTRE              '/'            
+14       ID                 'b'            
+14       PAR_DER            ')'            
+14       PAR_DER            ')'            
+14       PUNTOCOM           ';'            
+
+
+2. TABLA DE SÍMBOLOS (ESTADO FINAL)
+----------------------------------------
+Variable        Tipo         Valor Final    
+----------------------------------------
+a               entero       10             
+b               entero       20             
+
+============================================================
+FIN DEL REPORTE
