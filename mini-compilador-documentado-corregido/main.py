@@ -104,7 +104,7 @@ def generar_tabla(tokens, filename="progfte.tab"):
         with open(filename, "w", encoding="utf-8") as f:
 
             # Encabezado tipo tabla
-            f.write(f"{'No':<5}{'LEXEMA':<20}{'TOKEN':<20}{'REF':<10}\n")
+            f.write(f"{'No':<5}{'LEXEMA':<40}{'TOKEN':<20}{'REF':<10}\n")
             f.write("-" * 60 + "\n")
 
             # Referencias (puedes ajustar)
