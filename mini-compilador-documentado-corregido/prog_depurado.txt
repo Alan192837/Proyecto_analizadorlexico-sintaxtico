@@ -1,0 +1,1 @@
+enteroa=10;enterob=20;mostrar("Impresion de valores de operacions");mostrar("Suma:"+(a+b));mostrar("Resta:"+(a-b));mostrar("Multiplicacion:"+(a*b));mostrar("Division:"+(a/b));

@@ -1,0 +1,61 @@
+LISTA DE TOKENS
+----------------------------------------
+Renglon: 5, Lexema: entero, Token: ENTERO
+Renglon: 5, Lexema: a, Token: ID
+Renglon: 5, Lexema: =, Token: ASIGNAR
+Renglon: 5, Lexema: 10, Token: NUMERO
+Renglon: 5, Lexema: ;, Token: PUNTOCOM
+Renglon: 6, Lexema: entero, Token: ENTERO
+Renglon: 6, Lexema: b, Token: ID
+Renglon: 6, Lexema: =, Token: ASIGNAR
+Renglon: 6, Lexema: 20, Token: NUMERO
+Renglon: 6, Lexema: ;, Token: PUNTOCOM
+Renglon: 9, Lexema: mostrar, Token: MOSTRAR
+Renglon: 9, Lexema: (, Token: PAR_IZQ
+Renglon: 9, Lexema: Impresion de valores de operacions , Token: LITERAL_CADENA
+Renglon: 9, Lexema: ), Token: PAR_DER
+Renglon: 9, Lexema: ;, Token: PUNTOCOM
+Renglon: 11, Lexema: mostrar, Token: MOSTRAR
+Renglon: 11, Lexema: (, Token: PAR_IZQ
+Renglon: 11, Lexema: Suma: , Token: LITERAL_CADENA
+Renglon: 11, Lexema: +, Token: MAS
+Renglon: 11, Lexema: (, Token: PAR_IZQ
+Renglon: 11, Lexema: a, Token: ID
+Renglon: 11, Lexema: +, Token: MAS
+Renglon: 11, Lexema: b, Token: ID
+Renglon: 11, Lexema: ), Token: PAR_DER
+Renglon: 11, Lexema: ), Token: PAR_DER
+Renglon: 11, Lexema: ;, Token: PUNTOCOM
+Renglon: 12, Lexema: mostrar, Token: MOSTRAR
+Renglon: 12, Lexema: (, Token: PAR_IZQ
+Renglon: 12, Lexema: Resta: , Token: LITERAL_CADENA
+Renglon: 12, Lexema: +, Token: MAS
+Renglon: 12, Lexema: (, Token: PAR_IZQ
+Renglon: 12, Lexema: a, Token: ID
+Renglon: 12, Lexema: -, Token: MENOS
+Renglon: 12, Lexema: b, Token: ID
+Renglon: 12, Lexema: ), Token: PAR_DER
+Renglon: 12, Lexema: ), Token: PAR_DER
+Renglon: 12, Lexema: ;, Token: PUNTOCOM
+Renglon: 13, Lexema: mostrar, Token: MOSTRAR
+Renglon: 13, Lexema: (, Token: PAR_IZQ
+Renglon: 13, Lexema: Multiplicacion: , Token: LITERAL_CADENA
+Renglon: 13, Lexema: +, Token: MAS
+Renglon: 13, Lexema: (, Token: PAR_IZQ
+Renglon: 13, Lexema: a, Token: ID
+Renglon: 13, Lexema: *, Token: POR
+Renglon: 13, Lexema: b, Token: ID
+Renglon: 13, Lexema: ), Token: PAR_DER
+Renglon: 13, Lexema: ), Token: PAR_DER
+Renglon: 13, Lexema: ;, Token: PUNTOCOM
+Renglon: 14, Lexema: mostrar, Token: MOSTRAR
+Renglon: 14, Lexema: (, Token: PAR_IZQ
+Renglon: 14, Lexema: Division: , Token: LITERAL_CADENA
+Renglon: 14, Lexema: +, Token: MAS
+Renglon: 14, Lexema: (, Token: PAR_IZQ
+Renglon: 14, Lexema: a, Token: ID
+Renglon: 14, Lexema: /, Token: ENTRE
+Renglon: 14, Lexema: b, Token: ID
+Renglon: 14, Lexema: ), Token: PAR_DER
+Renglon: 14, Lexema: ), Token: PAR_DER
+Renglon: 14, Lexema: ;, Token: PUNTOCOM
