@@ -1,0 +1,18 @@
+enteroa=10;enterob=20;mostrar("Impresion de valores de operacions ");mostrar("Hola Mundo);
+
+
+
+
+
+
+//Pedimos el signo al usuario para saber la operacion 
+//mostrar("Ingreseelsimbolodelaoperacionlacualquiererealizar:");
+//cadena simbolo = "";
+//leer(simbolo);
+
+//Evaluamos los casos de las operaciones
+//si(simbolo == "+"){
+    //mostrar("Elresultadodelaoperaciones:" +  (numero1 + numero2));
+//}sino{
+    //si(simbolo == "-"){
+        //mostrar("Elresultadodelaoperaciones:"+(numero1-numero2));

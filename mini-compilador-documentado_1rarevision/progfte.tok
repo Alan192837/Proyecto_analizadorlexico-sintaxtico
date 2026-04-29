@@ -1,0 +1,76 @@
+Renglón: 5, Lexema: entero, Token: 1 EnteroTipo
+Renglón: 5, Lexema: a, Token: 22 Identificador
+Renglón: 5, Lexema: =, Token: 50 Asignacion
+Renglón: 5, Lexema: 10, Token: 20 Numero
+Renglón: 5, Lexema: ;, Token: 60 PuntoyComa
+Renglón: 6, Lexema: entero, Token: 1 EnteroTipo
+Renglón: 6, Lexema: b, Token: 22 Identificador
+Renglón: 6, Lexema: =, Token: 50 Asignacion
+Renglón: 6, Lexema: 20, Token: 20 Numero
+Renglón: 6, Lexema: ;, Token: 60 PuntoyComa
+Renglón: 10, Lexema: mostrar, Token: 7 Mostrar
+Renglón: 10, Lexema: (, Token: 75 Paren
+Renglón: 10, Lexema: "Impresion de valores de operacions ", Token: 21 Cadena
+Renglón: 10, Lexema: ), Token: 76 ParenDer
+Renglón: 10, Lexema: ;, Token: 60 PuntoyComa
+Renglón: 12, Lexema: mostrar, Token: 7 Mostrar
+Renglón: 12, Lexema: (, Token: 75 Paren
+Renglón: 12, Lexema: "Hola Mundo);
+
+
+
+
+
+
+//Pedimos el signo al usuario para saber la operacion 
+//mostrar(", Token: 21 Cadena
+Renglón: 12, Lexema: Ingrese, Token: 22 Identificador
+Renglón: 12, Lexema: el, Token: 22 Identificador
+Renglón: 12, Lexema: simbolo, Token: 22 Identificador
+Renglón: 12, Lexema: de, Token: 22 Identificador
+Renglón: 12, Lexema: la, Token: 22 Identificador
+Renglón: 12, Lexema: operacion, Token: 22 Identificador
+Renglón: 12, Lexema: la, Token: 22 Identificador
+Renglón: 12, Lexema: cual, Token: 22 Identificador
+Renglón: 12, Lexema: quiere, Token: 22 Identificador
+Renglón: 12, Lexema: realizar, Token: 22 Identificador
+Renglón: 12, Símbolo no identificado (:) (posible error)
+Renglón: 12, Lexema: ");
+//cadena simbolo = ", Token: 21 Cadena
+Renglón: 12, Lexema: ";
+//leer(simbolo);
+
+//Evaluamos los casos de las operaciones
+//si(simbolo == ", Token: 21 Cadena
+Renglón: 12, Lexema: +, Token: 30 Suma
+Renglón: 12, Lexema: "){
+    //mostrar(", Token: 21 Cadena
+Renglón: 12, Lexema: El, Token: 22 Identificador
+Renglón: 12, Lexema: resultado, Token: 22 Identificador
+Renglón: 12, Lexema: de, Token: 22 Identificador
+Renglón: 12, Lexema: la, Token: 22 Identificador
+Renglón: 12, Lexema: operacion, Token: 22 Identificador
+Renglón: 12, Lexema: es, Token: 22 Identificador
+Renglón: 12, Símbolo no identificado (:) (posible error)
+Renglón: 12, Lexema: " +  (numero1 + numero2));
+//}sino{
+    //si(simbolo == ", Token: 21 Cadena
+Renglón: 12, Lexema: -, Token: 31 Resta
+Renglón: 12, Lexema: "){
+        //mostrar(", Token: 21 Cadena
+Renglón: 12, Lexema: El, Token: 22 Identificador
+Renglón: 12, Lexema: resultado, Token: 22 Identificador
+Renglón: 12, Lexema: de, Token: 22 Identificador
+Renglón: 12, Lexema: la, Token: 22 Identificador
+Renglón: 12, Lexema: operacion, Token: 22 Identificador
+Renglón: 12, Lexema: es, Token: 22 Identificador
+Renglón: 12, Símbolo no identificado (:) (posible error)
+Renglón: 12, Símbolo no identificado (") (posible error)
+Renglón: 12, Lexema: +, Token: 30 Suma
+Renglón: 12, Lexema: (, Token: 75 Paren
+Renglón: 12, Lexema: numero1, Token: 22 Identificador
+Renglón: 12, Lexema: -, Token: 31 Resta
+Renglón: 12, Lexema: numero2, Token: 22 Identificador
+Renglón: 12, Lexema: ), Token: 76 ParenDer
+Renglón: 12, Lexema: ), Token: 76 ParenDer
+Renglón: 12, Lexema: ;, Token: 60 PuntoyComa
