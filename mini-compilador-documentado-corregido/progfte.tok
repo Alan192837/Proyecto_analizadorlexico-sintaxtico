@@ -43,7 +43,7 @@ Renglon: 13, Lexema: Multiplicacion: , Token: LITERAL_CADENA
 Renglon: 13, Lexema: +, Token: MAS
 Renglon: 13, Lexema: (, Token: PAR_IZQ
 Renglon: 13, Lexema: a, Token: ID
-Renglon: 13, Lexema: *, Token: POR
+Renglon: 13, Lexema: +, Token: MAS
 Renglon: 13, Lexema: b, Token: ID
 Renglon: 13, Lexema: ), Token: PAR_DER
 Renglon: 13, Lexema: ), Token: PAR_DER
@@ -53,7 +53,6 @@ Renglon: 14, Lexema: (, Token: PAR_IZQ
 Renglon: 14, Lexema: Division: , Token: LITERAL_CADENA
 Renglon: 14, Lexema: +, Token: MAS
 Renglon: 14, Lexema: (, Token: PAR_IZQ
-Renglon: 14, Lexema: a, Token: ID
 Renglon: 14, Lexema: /, Token: ENTRE
 Renglon: 14, Lexema: b, Token: ID
 Renglon: 14, Lexema: ), Token: PAR_DER

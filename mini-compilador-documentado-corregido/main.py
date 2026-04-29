@@ -107,7 +107,7 @@ def generar_tabla(tokens, filename="progfte.tab"):
             f.write(f"{'No':<5}{'LEXEMA':<40}{'TOKEN':<20}{'REF':<10}\n")
             f.write("-" * 60 + "\n")
 
-            # Referencias (puedes ajustar)
+            # Referencias
             referencias = {
                 'MAIN': 100,
                 'PAR_IZQ': 75,
@@ -262,7 +262,7 @@ def run_source(source: str, show_tokens: bool = False, show_ast: bool = False,
         generar_tabla(tokens, "progfte.tab")
 
     # SIEMPRE generar tokens
-        generar_archivo_tokens(tokens, "progfte.tok")
+    generar_archivo_tokens(tokens, "progfte.tok")
     
 
 

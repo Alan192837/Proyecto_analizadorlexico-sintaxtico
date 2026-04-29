@@ -116,7 +116,7 @@ def generar_reporte_compilador(tokens, tabla_simbolos, filename="progfte.txt"):
         print(f"[Error] No se pudo generar el reporte: {e}")
 
 
-def generar_codigo_depurado(tokens, filename="prog_depurado.txt"):
+def generar_codigo_depurado(tokens, filename="prog_depurado.dep"):
     """
     Reconstruye el código fuente a partir de los tokens, eliminando
     comentarios y normalizando espacios, luego lo escribe en un archivo.
@@ -133,7 +133,7 @@ def generar_codigo_depurado(tokens, filename="prog_depurado.txt"):
     Parámetros:
         tokens   (list[LexToken]): lista de tokens del programa fuente
         filename (str)           : nombre del archivo de salida;
-                                   por defecto "prog_depurado.txt"
+                                   por defecto "prog_depurado.dep"
 
     No retorna valor. Efectos secundarios:
         - Crea o sobreescribe el archivo indicado.
@@ -144,28 +144,100 @@ def generar_codigo_depurado(tokens, filename="prog_depurado.txt"):
             # Rastrea la línea que se está escribiendo actualmente
             # para saber cuántos saltos de línea insertar antes del próximo token
             linea_actual = 1
-
+            '''
+            codigo = ""
+            
             for i, t in enumerate(tokens):
                 # Si el token pertenece a una línea posterior a la actual,
                 # inserta los saltos de línea necesarios para posicionarse ahí
-                if t.lineno > linea_actual:
-                    f.write("\n" * (t.lineno - linea_actual))
-                    linea_actual = t.lineno
+                #if t.lineno > linea_actual:
+                #    f.write("\n" * (t.lineno - linea_actual))
+                #    linea_actual = t.lineno
 
                 # Escribe el valor del token; para cadenas las rodea de comillas
                 # ya que el lexer las quitó al tokenizar
-                if t.type == 'CADENA':
-                    f.write(f'"{t.value}"')
+                if t.type == 'LITERAL_CADENA':
+                    codigo += f'"{t.value}"'
                 else:
-                    f.write(str(t.value))
+                    codigo += str(t.value)
 
-                if i + 1 < len(tokens) and tokens[i+1].lineno == t.lineno:
-                    f.write(" ")
+                #if i + 1 < len(tokens) and tokens[i+1].lineno == t.lineno:
+                  #  f.write(" ")
+
+            '''
+
+            codigo = ""
+
+            for t in tokens:
+                if t.type == 'LITERAL_CADENA':
+                    codigo += f'"{t.value}"'
+                else:
+                    codigo += str(t.value)
+
+            with open(filename, "w", encoding="utf-8") as f:
+                f.write(codigo.strip())
 
         print(f"[Sistema] Código fuente depurado generado en: {filename}")
 
     except Exception as e:
         print(f"[Error] No se pudo generar el código depurado: {e}")
+
+def construir_tabla_simbolos(tokens):
+    tabla = []
+    contador = 1
+    mapa_ids = {}
+
+    for t in tokens:
+        lexema = str(t.value)
+        token = t.type
+
+        # Clasificación simple
+        if token in ['ID']:
+            tipo = 'id'
+
+            # Evitar duplicados
+            if lexema not in mapa_ids:
+                mapa_ids[lexema] = contador
+                tabla.append((contador, lexema, tipo, ''))
+                contador += 1
+
+        elif token in ['ENTERO', 'CADENA_TIPO', 'LOGICO_TIPO']:
+            tabla.append((contador, lexema, token, ''))
+            contador += 1
+
+        elif token in ['MOSTRAR', 'LEER', 'SI', 'SINO']:
+            tabla.append((contador, lexema, token, 'Pal_res'))
+            contador += 1
+
+        elif token in ['PAR_IZQ']:
+            tabla.append((contador, lexema, 'PAREN', 75))
+            contador += 1
+
+    return tabla
+
+def imprimir_tabla_simbolos(tabla):
+    print("\nTABLA DE SIMBOLOS\n")
+    print(f"{'No':<5}{'LEXEMA':<10}{'TOKEN':<10}{'REF':<10}")
+    
+    for fila in tabla:
+        no, lexema, token, ref = fila
+        print(f"{no:<5}{lexema:<10}{token:<10}{str(ref):<10}")
+
+def imprimir_lista_tokens(tokens):
+    print("\nLista de lexemas\n")
+
+    for t in tokens:
+        tipo_extra = ""
+
+        if t.type in ['MOSTRAR', 'LEER', 'SI']:
+            tipo_extra = "Pal_resa"
+        elif t.type == 'PAR_IZQ':
+            tipo_extra = "Paren"
+        elif t.type == 'ID':
+            tipo_extra = "id"
+
+        print(f"Renglón: {t.lineno}, Lexema: {t.value}, Token: {t.type} {tipo_extra}")
+
 
 
 # =============================================================================
@@ -208,6 +280,11 @@ def run_source(source: str, show_tokens: bool = False, show_ast: bool = False,
     # pero solo imprime en pantalla si show_tokens es True
     tokens = tokenize(source, verbose=show_tokens)
 
+    tabla = construir_tabla_simbolos(tokens)
+
+    imprimir_tabla_simbolos(tabla)
+    imprimir_lista_tokens(tokens)
+
     # ── Fase 2: Análisis sintáctico ────────────────────────────────────────
     # parse() devuelve el AST o None si hay errores sintácticos
     ast = parse(source)
@@ -234,7 +311,7 @@ def run_source(source: str, show_tokens: bool = False, show_ast: bool = False,
     # no tendrían información útil.
     if ast is not None:
         interp.save_symbols("resultado_simbolos.txt")
-        generar_codigo_depurado(tokens, "prog_depurado.txt")
+        generar_codigo_depurado(tokens, "prog_depurado.dep")
 
     # El reporte léxico + tabla de símbolos se genera siempre,
     # incluso si hubo errores, porque los tokens sí fueron producidos

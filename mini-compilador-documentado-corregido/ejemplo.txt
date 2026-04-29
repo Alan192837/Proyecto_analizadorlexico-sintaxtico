@@ -10,11 +10,8 @@ mostrar("Impresion de valores de operacions ");
 
 mostrar("Suma: " + (a + b));
 mostrar("Resta: " + (a - b));
-mostrar("Multiplicacion: " + (a * b));
-mostrar("Division: " + (a / b));
-
-
-
+mostrar("Multiplicacion: " + (a + b));
+mostrar("Division: " + (@ / b));
 
 //Pedimos el signo al usuario para saber la operacion 
 //mostrar("Ingrese el simbolo de la operacion la cual quiere realizar:");
