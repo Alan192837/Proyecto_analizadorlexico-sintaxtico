@@ -159,26 +159,31 @@ t_COMA      = r','
 # =============================================================================
 
 def t_CADENA_ERROR(t):
-    r'"[^"\n]*$'
+    r'"[^"\n]*(?=\n|$)'
     """
-    CORRECCIÓN 3 — Cadena sin comilla de cierre.
+    Cadena sin comilla de cierre — error léxico.
 
-    Detecta una comilla de apertura seguida de cualquier contenido que
-    llega hasta el FIN DE LÍNEA (ancla $) sin encontrar la comilla de cierre.
+    Detecta una comilla de apertura seguida de contenido que llega hasta
+    el fin de la línea actual sin encontrar la comilla de cierre.
 
-    Esto ocurre cuando el programador escribe:
-        mostrar("Hola mundo);    ← la ) y ; quedan dentro de la "cadena"
+    El patrón se compone de tres partes:
+        "           → comilla de apertura obligatoria
+        [^"\\n]*    → cualquier carácter EXCEPTO comilla y salto de línea;
+                      esto es lo que realmente detiene el match en la línea
+        (?=\\n|$)   → lookahead: confirma que lo que sigue es un salto de
+                      línea o fin de texto, sin consumirlo
 
-    El patrón [^"\\n]* acepta cualquier carácter EXCEPTO comilla (") y
-    salto de línea (\\n), lo que limita el error al renglón actual.
-    La ancla $ garantiza que solo aplica cuando NO hay comilla de cierre
-    antes del fin de línea.
+    Por qué [^"\\n]* es suficiente:
+        PLY no activa re.MULTILINE, así que el ancla $ sola no garantiza
+        detenerse en cada línea. Al excluir \\n del grupo de caracteres,
+        el match termina naturalmente al llegar al salto de línea,
+        sin arrastrarse a las líneas siguientes.
 
     Comportamiento:
+        - Captura solo el renglón donde está la comilla sin cerrar.
+        - Las líneas posteriores se siguen tokenizando con normalidad.
         - Guarda el contenido sin la comilla inicial como valor del token.
-        - Reporta el error en consola indicando línea y contenido.
-        - El token CADENA_ERROR queda registrado para .tok y .tab.
-        - El parser lo recibirá pero lo tratará como error sintáctico.
+        - Reporta el error indicando línea y contenido.
 
     Parámetro:
         t: objeto LexToken de PLY
