@@ -1,12 +1,12 @@
-No   LEXEMA                                  TOKEN               REF       
-------------------------------------------------------------
+No   LEXEMA                                  TOKEN               REF       NOTA
+--------------------------------------------------------------------------------
 1    entero                                  ENTERO              101       
-2    a                                       ID                  200       
+2    a                                       ID                  300       
 3    =                                       ASIGNAR             84        
 4    10                                      NUMERO              201       
 5    ;                                       PUNTOCOM            79        
 6    entero                                  ENTERO              101       
-7    b                                       ID                  200       
+7    b                                       ID                  301       
 8    =                                       ASIGNAR             84        
 9    20                                      NUMERO              201       
 10   ;                                       PUNTOCOM            79        
@@ -20,9 +20,9 @@ No   LEXEMA                                  TOKEN               REF
 18   Suma:                                   LITERAL_CADENA      202       
 19   +                                       MAS                 80        
 20   (                                       PAR_IZQ             75        
-21   a                                       ID                  200       
+21   a                                       ID                  300       
 22   +                                       MAS                 80        
-23   b                                       ID                  200       
+23   b                                       ID                  301       
 24   )                                       PAR_DER             76        
 25   )                                       PAR_DER             76        
 26   ;                                       PUNTOCOM            79        
@@ -31,9 +31,9 @@ No   LEXEMA                                  TOKEN               REF
 29   Resta:                                  LITERAL_CADENA      202       
 30   +                                       MAS                 80        
 31   (                                       PAR_IZQ             75        
-32   a                                       ID                  200       
+32   a                                       ID                  300       
 33   -                                       MENOS               81        
-34   b                                       ID                  200       
+34   b                                       ID                  301       
 35   )                                       PAR_DER             76        
 36   )                                       PAR_DER             76        
 37   ;                                       PUNTOCOM            79        
@@ -42,9 +42,9 @@ No   LEXEMA                                  TOKEN               REF
 40   Multiplicacion:                         LITERAL_CADENA      202       
 41   +                                       MAS                 80        
 42   (                                       PAR_IZQ             75        
-43   a                                       ID                  200       
-44   +                                       MAS                 80        
-45   b                                       ID                  200       
+43   a                                       ID                  300       
+44   *                                       POR                 82        
+45   b                                       ID                  301       
 46   )                                       PAR_DER             76        
 47   )                                       PAR_DER             76        
 48   ;                                       PUNTOCOM            79        
@@ -53,8 +53,12 @@ No   LEXEMA                                  TOKEN               REF
 51   Division:                               LITERAL_CADENA      202       
 52   +                                       MAS                 80        
 53   (                                       PAR_IZQ             75        
-54   /                                       ENTRE               83        
-55   b                                       ID                  200       
-56   )                                       PAR_DER             76        
+54   a                                       ID                  300       
+55   /                                       ENTRE               83        
+56   b                                       ID                  301       
 57   )                                       PAR_DER             76        
-58   ;                                       PUNTOCOM            79        
+58   )                                       PAR_DER             76        
+59   ;                                       PUNTOCOM            79        
+60   mostrar                                 MOSTRAR             106       
+61   (                                       PAR_IZQ             75        
+62   Hola mundo);                            CADENA_ERROR        902       (posible error)

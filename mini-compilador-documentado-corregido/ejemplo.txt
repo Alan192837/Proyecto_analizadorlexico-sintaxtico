@@ -8,10 +8,13 @@ entero b = 20;
 //Pedimos los datos al usuario
 mostrar("Impresion de valores de operacions ");
 
-mostrar("Suma: " + (d + b));
+mostrar("Suma: " + (@ + b));
 mostrar("Resta: " + (a - b));
-mostrar("Multiplicacion: " + (a + b));
-mostrar("Division: " + (@ / b));
+mostrar("Multiplicacion: " + (a * b));
+mostrar("Division: " + (a / b));
+
+
+
 
 //Pedimos el signo al usuario para saber la operacion 
 //mostrar("Ingrese el simbolo de la operacion la cual quiere realizar:");

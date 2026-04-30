@@ -2,7 +2,10 @@ Created by PLY version 3.11 (http://www.dabeaz.com/ply)
 
 Unused terminals:
 
+    CADENA_ERROR
     COMA
+    ERROR_LEXICO
+    ID_CON_ERROR
 
 Grammar
 
@@ -54,13 +57,16 @@ Rule 43    factor -> MENOS factor
 Terminals, with rules where they appear
 
 ASIGNAR              : 9 13
+CADENA_ERROR         : 
 CADENA_TIPO          : 11
 COMA                 : 
 DISTINTO             : 29
 ENTERO               : 10
 ENTRE                : 35
+ERROR_LEXICO         : 
 FALSO                : 40
 ID                   : 9 13 15 41
+ID_CON_ERROR         : 
 IGUAL                : 28
 LEER                 : 15
 LITERAL_CADENA       : 38

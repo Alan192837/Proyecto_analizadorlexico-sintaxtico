@@ -173,11 +173,7 @@ def generar_tabla(tokens, filename="progfte.tab"):
             f.write(f"{'No':<5}{'LEXEMA':<40}{'TOKEN':<20}{'REF':<10}{'NOTA'}\n")
             f.write("-" * 80 + "\n")
 
-<<<<<<< HEAD
             # Referencias fijas para tokens no-ID
-=======
-            # Referencias
->>>>>>> 53bcadde508435fc9f376317e9e30a6d92cab4bd
             referencias = {
                 'MAIN'          : 100,
                 'PAR_IZQ'       : 75,
@@ -327,22 +323,10 @@ def run_source(source: str, show_tokens: bool = False, show_ast: bool = False,
         print(f"\n[Error de ejecucion] {e}")
 
     # ── Fase 4: Generación de reportes ────────────────────────────────────
-    # CORRECCIÓN: los reportes .tok y .tab se generan SIEMPRE, incluso si
-    # el parsing falló, para que los errores léxicos sean visibles.
-    # Solo el .dep requiere ast válido (necesita el árbol para reconstruir).
+    generar_codigo_depurado(tokens, "progfte.dep")
     generar_archivo_tokens(tokens, "progfte.tok")
     generar_tabla(tokens, "progfte.tab")
-
-    if ast is not None:
-        generar_codigo_depurado(tokens, "progfte.dep")
-<<<<<<< HEAD
-=======
-        generar_tabla(tokens, "progfte.tab")
-
-    # SIEMPRE generar tokens
-    generar_archivo_tokens(tokens, "progfte.tok")
-    
->>>>>>> 53bcadde508435fc9f376317e9e30a6d92cab4bd
+       
 
 
 # =============================================================================
