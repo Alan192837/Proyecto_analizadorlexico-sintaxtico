@@ -22,9 +22,9 @@ Uso desde la terminal (dentro de la carpeta del proyecto):
     python main.py archivo.txt --tokens --ast  → combinación de flags
 
 Archivos generados automáticamente en cada ejecución:
-    progfte.tok           → tokens generados
-    progfte.dep           → codigo fuente depurado
-    progfte.tab           → tabla de símbolos en formato de texto
+    progfte.tok           → tokens generados (incluye errores léxicos)
+    progfte.dep           → codigo fuente depurado (solo tokens válidos)
+    progfte.tab           → tabla de símbolos en formato de texto (incluye errores)
 =============================================================================
 """
 
@@ -38,160 +38,249 @@ from interpreter import Interpreter # Fase 3: ejecución
 
 
 # =============================================================================
+# CONJUNTO DE TOKENS DE ERROR
+# Centraliza los tipos de token que representan errores léxicos para que
+# las funciones de reporte los identifiquen y los traten de forma especial
+# (nota aclaratoria en lugar de simplemente omitirlos).
+# =============================================================================
+TOKENS_ERROR = {'ID_CON_ERROR', 'CADENA_ERROR', 'ERROR_LEXICO'}
+
+
+# =============================================================================
 # GENERADORES DE REPORTES
-# Estas funciones producen archivos de salida con información del proceso
-# de compilación; son independientes de la ejecución del programa fuente.
 # =============================================================================
 
 def generar_archivo_tokens(tokens, filename="progfte.tok"):
     """
-    Genera un archivo de texto con la lista de tokens producidos por el lexer.
+    Genera el archivo .tok con la lista de tokens del programa fuente.
 
-    Este archivo corresponde al formato requerido por la rúbrica para el
-    análisis léxico en forma de lista, donde cada línea representa un token
-    con su información básica.
+    Formato de salida para tokens normales:
+        Renglon: <n>, Lexema: <valor>, Token: <tipo>, REF: <ref>
 
-    Formato de salida:
-        Renglon: <número de línea>, Lexema: <valor>, Token: <tipo>
+    Formato de salida para tokens de error:
+        Renglon: <n>, Lexema: <valor>, Token: <tipo>, REF: <ref>  *** ERROR LEXICO ***
+
+    La columna REF sigue las mismas reglas que en .tab:
+        - Tokens fijos (palabras reservadas, operadores, etc.) → número asignado
+        - Identificadores (ID) → número único incremental desde 300
+        - Tokens de error → 900 / 901 / 902
 
     Parámetros:
         tokens   (list[LexToken]): lista de tokens generados por el lexer
-        filename (str)           : nombre del archivo de salida;
-                                   por defecto "progfte.tok"
-
-    No retorna valor. Efectos secundarios:
-        - Crea o sobrescribe el archivo indicado.
-        - Imprime un mensaje de confirmación o error en consola.
+        filename (str)           : nombre del archivo de salida
     """
+    # Referencias fijas — mismas que en generar_tabla para consistencia
+    referencias = {
+        'MAIN'          : 100,
+        'PAR_IZQ'       : 75,
+        'PAR_DER'       : 76,
+        'LLA_IZQ'       : 77,
+        'LLA_DER'       : 78,
+        'PUNTOCOM'      : 79,
+        'MAS'           : 80,
+        'MENOS'         : 81,
+        'POR'           : 82,
+        'ENTRE'         : 83,
+        'ASIGNAR'       : 84,
+        'MAYOR'         : 85,
+        'MENOR'         : 86,
+        'MAYOR_IG'      : 87,
+        'MENOR_IG'      : 88,
+        'IGUAL'         : 89,
+        'DISTINTO'      : 90,
+        'ENTERO'        : 101,
+        'CADENA_TIPO'   : 102,
+        'LOGICO_TIPO'   : 103,
+        'SI'            : 104,
+        'SINO'          : 105,
+        'MOSTRAR'       : 106,
+        'LEER'          : 107,
+        'VERDADERO'     : 108,
+        'FALSO'         : 109,
+        'NUMERO'        : 201,
+        'LITERAL_CADENA': 202,
+        'ERROR_LEXICO'  : 900,
+        'ID_CON_ERROR'  : 901,
+        'CADENA_ERROR'  : 902,
+    }
+
+    # Tabla de IDs incremental — misma lógica que en generar_tabla
+    id_refs    = {}
+    id_counter = 300
+
     try:
         with open(filename, "w", encoding="utf-8") as f:
             f.write("LISTA DE TOKENS\n")
             f.write("-" * 40 + "\n")
-            
+
             for t in tokens:
-                f.write(f"Renglon: {t.lineno}, Lexema: {t.value}, Token: {t.type}\n")
+                lexema = str(t.value)
+                token  = t.type
+
+                # Calcula REF según el tipo de token
+                if token == 'ID':
+                    if lexema not in id_refs:
+                        id_refs[lexema] = id_counter
+                        id_counter += 1
+                    ref = id_refs[lexema]
+                else:
+                    ref = referencias.get(token, 999)
+
+                # Construye la línea con REF incluida
+                linea = f"Renglon: {t.lineno}, Lexema: {lexema}, Token: {token}, REF: {ref}"
+
+                # Agrega nota visual al final si es un error léxico
+                if token in TOKENS_ERROR:
+                    linea += "  *** ERROR LEXICO ***"
+
+                f.write(linea + "\n")
 
         print(f"[Sistema] Archivo de tokens generado en: {filename}")
 
     except Exception as e:
         print(f"[Error] No se pudo generar el archivo .tok: {e}")
 
+
 def generar_tabla(tokens, filename="progfte.tab"):
     """
-    Genera un archivo en formato tabla con los tokens del programa fuente.
+    Genera el archivo .tab con tabla de símbolos en formato tabular.
 
-    Este archivo cumple con el formato tabular solicitado por la rúbrica,
-    donde cada token se representa en una fila con las siguientes columnas:
-        - No     : número consecutivo del token
-        - LEXEMA : valor textual del token
-        - TOKEN  : tipo de token reconocido por el lexer
-        - REF    : código numérico asociado al tipo de token
+    Formato de cada fila:
+        No    LEXEMA    TOKEN    REF    NOTA
 
-    La columna REF es definida mediante un diccionario interno que asigna
-    un identificador numérico a cada tipo de token. Este valor no es generado
-    por PLY, sino que es parte del formato académico requerido.
+    REF para identificadores (ID):
+        Cada variable recibe un número único incremental a partir de 300.
+        Si la misma variable aparece más de una vez, conserva su REF original.
+        Ejemplo:  llueve → 300,  frio → 301,  otra → 302 ...
+        Esto replica el comportamiento mostrado en el ejemplo de la rúbrica
+        donde cada ID tenía su propio número (300, 301, 303...).
+
+    REF para tokens de error:
+        ERROR_LEXICO  → 900
+        ID_CON_ERROR  → 901
+        CADENA_ERROR  → 902
+
+    La columna NOTA aparece solo en filas de error: '(posible error)'.
 
     Parámetros:
         tokens   (list[LexToken]): lista de tokens generados por el lexer
-        filename (str)           : nombre del archivo de salida;
-                                   por defecto "progfte.tab"
-
-    No retorna valor. Efectos secundarios:
-        - Crea o sobrescribe el archivo indicado.
-        - Imprime un mensaje de confirmación o error en consola.
+        filename (str)           : nombre del archivo de salida
     """
     try:
         with open(filename, "w", encoding="utf-8") as f:
 
-            # Encabezado tipo tabla
-            f.write(f"{'No':<5}{'LEXEMA':<40}{'TOKEN':<20}{'REF':<10}\n")
-            f.write("-" * 60 + "\n")
+            # Encabezado
+            f.write(f"{'No':<5}{'LEXEMA':<40}{'TOKEN':<20}{'REF':<10}{'NOTA'}\n")
+            f.write("-" * 80 + "\n")
 
-            # Referencias (puedes ajustar)
+            # Referencias fijas para tokens no-ID
             referencias = {
-                'MAIN': 100,
-                'PAR_IZQ': 75,
-                'PAR_DER': 76,
-                'LLA_IZQ': 77,
-                'LLA_DER': 78,
-                'PUNTOCOM': 79,
-                'MAS': 80,
-                'MENOS': 81,
-                'POR': 82,
-                'ENTRE': 83,
-                'ASIGNAR': 84,
-                'MAYOR': 85,
-                'MENOR': 86,
-                'MAYOR_IG': 87,
-                'MENOR_IG': 88,
-                'IGUAL': 89,
-                'DISTINTO': 90,
-                'ENTERO': 101,
-                'CADENA_TIPO': 102,
-                'LOGICO_TIPO': 103,
-                'SI': 104,
-                'SINO': 105,
-                'MOSTRAR': 106,
-                'LEER': 107,
-                'VERDADERO': 108,
-                'FALSO': 109,
-                'ID': 200,
-                'NUMERO': 201,
-                'LITERAL_CADENA': 202
+                'MAIN'          : 100,
+                'PAR_IZQ'       : 75,
+                'PAR_DER'       : 76,
+                'LLA_IZQ'       : 77,
+                'LLA_DER'       : 78,
+                'PUNTOCOM'      : 79,
+                'MAS'           : 80,
+                'MENOS'         : 81,
+                'POR'           : 82,
+                'ENTRE'         : 83,
+                'ASIGNAR'       : 84,
+                'MAYOR'         : 85,
+                'MENOR'         : 86,
+                'MAYOR_IG'      : 87,
+                'MENOR_IG'      : 88,
+                'IGUAL'         : 89,
+                'DISTINTO'      : 90,
+                'ENTERO'        : 101,
+                'CADENA_TIPO'   : 102,
+                'LOGICO_TIPO'   : 103,
+                'SI'            : 104,
+                'SINO'          : 105,
+                'MOSTRAR'       : 106,
+                'LEER'          : 107,
+                'VERDADERO'     : 108,
+                'FALSO'         : 109,
+                'NUMERO'        : 201,
+                'LITERAL_CADENA': 202,
+                # Tokens de error
+                'ERROR_LEXICO'  : 900,
+                'ID_CON_ERROR'  : 901,
+                'CADENA_ERROR'  : 902,
             }
 
-            # Llenado
+            # Tabla de IDs: mapea nombre_variable → REF único asignado
+            # Se llena dinámicamente conforme aparecen nuevos identificadores.
+            # La primera variable recibe 300, la segunda 301, y así sucesivamente.
+            id_refs   = {}   # { 'llueve': 300, 'frio': 301, ... }
+            id_counter = 300  # Contador que se incrementa con cada ID nuevo
+
             for i, t in enumerate(tokens, start=1):
                 lexema = str(t.value)
-                token = t.type
-                ref = referencias.get(token, 999)
+                token  = t.type
 
-                f.write(f"{i:<5}{lexema:<40}{token:<20}{ref:<10}\n")
+                if token == 'ID':
+                    # Si este nombre de variable ya fue visto, reutiliza su REF.
+                    # Si es nuevo, asígnale el siguiente número disponible.
+                    if lexema not in id_refs:
+                        id_refs[lexema] = id_counter
+                        id_counter += 1
+                    ref = id_refs[lexema]
+                else:
+                    ref = referencias.get(token, 999)
+
+                # Columna NOTA: solo visible en tokens de error
+                nota = "(posible error)" if token in TOKENS_ERROR else ""
+
+                f.write(f"{i:<5}{lexema:<40}{token:<20}{ref:<10}{nota}\n")
 
         print(f"[Sistema] Archivo .tab generado correctamente")
 
     except Exception as e:
         print(f"[Error] No se pudo generar .tab: {e}")
 
+
 def generar_codigo_depurado(tokens, filename="progfte.dep"):
     """
     Genera una versión depurada del código fuente a partir de los tokens.
 
-    Este proceso reconstruye el programa original eliminando:
-        - Comentarios
-        - Espacios innecesarios
-        - Formato irregular
+    Elimina comentarios, espacios, tabuladores y saltos de línea,
+    reconstruyendo el programa de forma compacta. Todos los lexemas
+    aparecen en el archivo, incluyendo los tokens de error, tal como
+    fueron escritos en el fuente original (sin etiquetas ni marcas).
 
-    El resultado es un código compacto donde los lexemas aparecen de forma
-    continua, respetando únicamente el contenido esencial del programa.
-
-    Consideraciones:
-        - Las cadenas (LITERAL_CADENA) conservan su contenido original,
-          incluyendo espacios internos, ya que forman parte del valor.
-        - No se insertan saltos de línea ni espacios adicionales.
+    Casos especiales:
+        - LITERAL_CADENA : se restauran las comillas dobles (el lexer las quita)
+        - CADENA_ERROR   : se restaura solo la comilla de apertura, ya que
+                           la de cierre nunca existió en el fuente
+        - ID_CON_ERROR   : se escribe el lexema completo, ej: ent#ero
+        - ERROR_LEXICO   : se escribe el carácter ilegal aislado, ej: @
 
     Parámetros:
         tokens   (list[LexToken]): lista de tokens generados por el lexer
-        filename (str)           : nombre del archivo de salida;
-                                   por defecto "progfte.dep"
-
-    No retorna valor. Efectos secundarios:
-        - Crea o sobrescribe el archivo indicado.
-        - Imprime un mensaje de confirmación o error en consola.
+        filename (str)           : nombre del archivo de salida
     """
     try:
         with open(filename, "w", encoding="utf-8") as f:
 
             for t in tokens:
                 if t.type == 'LITERAL_CADENA':
+                    # Cadena válida: restaura las comillas que el lexer quitó
                     f.write(f'"{t.value.strip()}"')
+                elif t.type == 'CADENA_ERROR':
+                    # Cadena sin cerrar: restaura solo la comilla de apertura
+                    # ya que nunca hubo comilla de cierre en el fuente original
+                    f.write(f'"{t.value.strip()}')
                 else:
+                    # Todos los demás tokens (válidos y de error) se escriben
+                    # con su lexema original, sin ninguna marca adicional
                     f.write(str(t.value).strip())
 
         print(f"[Sistema] Código fuente depurado generado en: {filename}")
 
     except Exception as e:
         print(f"[Error] No se pudo generar el código depurado: {e}")
+
 
 # =============================================================================
 # PIPELINE PRINCIPAL
@@ -202,42 +291,25 @@ def run_source(source: str, show_tokens: bool = False, show_ast: bool = False,
     """
     Ejecuta el pipeline completo sobre un string de código fuente.
 
-    Es el corazón de este módulo: coordina las tres fases de compilación
-    e interpretación y genera los archivos de reporte. Tanto la ejecución
-    de ejemplos embebidos como la de archivos externos pasan por aquí.
-
-    Pipeline interno:
-        1. tokenize()       → análisis léxico (siempre se ejecuta)
-        2. parse()          → análisis sintáctico (construye el AST)
-        3. Interpreter.run()→ ejecución del AST
-        4. Reportes         → archivos de salida (progfte.txt, etc.)
-
     Parámetros:
         source       (str) : código fuente completo del programa a ejecutar
         show_tokens  (bool): si True, imprime los tokens en pantalla (flag --tokens)
         show_ast     (bool): si True, imprime el AST en pantalla (flag --ast)
-        show_symbols (bool): reservado para uso futuro; actualmente los símbolos
-                             se guardan siempre en archivo (no se usa en lógica)
-        label        (str) : texto descriptivo del programa que se muestra
-                             en el separador visual antes de la ejecución
+        show_symbols (bool): reservado para uso futuro
+        label        (str) : texto descriptivo del programa
     """
     sep = "=" * 60
-    # Separador visual entre ejecuciones (útil cuando se corren varios ejemplos)
     print(f"\n{sep}")
     if label:
         print(f"  {label}")
     print(sep)
 
     # ── Fase 1: Análisis léxico ────────────────────────────────────────────
-    # tokenize() siempre se ejecuta (para generar el reporte y el código depurado)
-    # pero solo imprime en pantalla si show_tokens es True
     tokens = tokenize(source, verbose=show_tokens)
 
     # ── Fase 2: Análisis sintáctico ────────────────────────────────────────
-    # parse() devuelve el AST o None si hay errores sintácticos
     ast = parse(source)
 
-    # Imprime el AST completo solo si se activó el flag --ast y no hubo errores
     if show_ast and ast is not None:
         print("\n-- AST --")
         print(ast)
@@ -248,36 +320,26 @@ def run_source(source: str, show_tokens: bool = False, show_ast: bool = False,
     try:
         interp.run(ast)
     except RuntimeError as e:
-        # Captura errores en tiempo de ejecución (uso antes de declaración,
-        # división por cero, error de tipo) sin detener el programa principal;
-        # permite que los reportes se generen igualmente.
         print(f"\n[Error de ejecucion] {e}")
 
     # ── Fase 4: Generación de reportes ────────────────────────────────────
-    # Solo genera los archivos si el parsing fue exitoso (ast no es None),
-    # ya que sin AST la tabla de símbolos estará vacía y los archivos
-    # no tendrían información útil.
+    # CORRECCIÓN: los reportes .tok y .tab se generan SIEMPRE, incluso si
+    # el parsing falló, para que los errores léxicos sean visibles.
+    # Solo el .dep requiere ast válido (necesita el árbol para reconstruir).
+    generar_archivo_tokens(tokens, "progfte.tok")
+    generar_tabla(tokens, "progfte.tab")
+
     if ast is not None:
         generar_codigo_depurado(tokens, "progfte.dep")
-        generar_tabla(tokens, "progfte.tab")
-
-    # SIEMPRE generar tokens
-        generar_archivo_tokens(tokens, "progfte.tok")
-    
 
 
 # =============================================================================
 # EJEMPLOS DE PRUEBA EMBEBIDOS
-# Cada elemento de la lista es una tupla (etiqueta, código_fuente).
-# Los nombres de variable evitan las palabras reservadas del lenguaje:
-#   y, o, no, si, sino, entero, cadena, logico, verdadero, falso, leer, mostrar
 # =============================================================================
 
 EJEMPLOS = [
 
     # ── Ejemplo 12: operadores lógicos NO y O combinados ──────────────────
-    # Demuestra la evaluación de expresiones lógicas compuestas y la
-    # precedencia entre NOT (mayor) y OR (menor).
     (
         "EJEMPLO 12 — Logico con operador NO y O",
         """
@@ -294,53 +356,43 @@ EJEMPLOS = [
         mostrar(frio);
         """
     ),
+
+    # ── Ejemplo de errores léxicos — para probar las correcciones ─────────
+    (
+        "EJEMPLO ERRORES — ID con caracter ilegal y cadena sin cerrar",
+        """
+        entero ent@ro = 5;
+        mostrar("Hola mundo);
+        entero val@r_x = 10;
+        """
+    ),
 ]
-   
 
 
 # =============================================================================
-# FUNCIÓN PRINCIPAL — lógica de arranque y parseo de argumentos CLI
+# FUNCIÓN PRINCIPAL
 # =============================================================================
 
 def main():
     """
     Punto de entrada del programa: parsea los argumentos de línea de comandos
     y decide si ejecutar un archivo externo o los ejemplos embebidos.
-
-    Flags reconocidos (pueden combinarse):
-        --tokens  → activa verbose=True en tokenize() para ver cada token
-        --ast     → imprime el AST completo tras el parsing
-        --no-sym  → reservado; en la implementación actual no suprime la tabla
-                    (la tabla siempre se guarda en archivo)
-
-    Argumento posicional:
-        Cualquier argumento que no empiece con '--' y sea un archivo existente
-        se interpreta como el programa fuente a ejecutar.
     """
-    # ── Detección de flags ─────────────────────────────────────────────────
-    show_tokens  = '--tokens' in sys.argv   # Activa impresión de tokens
-    show_ast     = '--ast'    in sys.argv   # Activa impresión del AST
-    hide_symbols = '--no-sym' in sys.argv   # Flag registrado pero no usado actualmente
+    show_tokens  = '--tokens' in sys.argv
+    show_ast     = '--ast'    in sys.argv
+    hide_symbols = '--no-sym' in sys.argv
 
-    # ── Búsqueda de archivo fuente en los argumentos ───────────────────────
-    # Itera sobre todos los argumentos buscando el primero que sea un archivo
-    # existente y no sea un flag (no empieza con '--').
-    # Esto permite que el archivo se pase en cualquier posición relativa a los flags.
     source_file = None
     for arg in sys.argv[1:]:
         if not arg.startswith('--') and os.path.isfile(arg):
             source_file = arg
-            break   # Solo se procesa el primer archivo encontrado
+            break
 
-    # ── Modo archivo: ejecuta el programa del archivo ──────────────────────
     if source_file:
         try:
-            # Intenta leer con UTF-8 (encoding estándar moderno)
             with open(source_file, 'r', encoding='utf-8') as f:
                 source = f.read()
         except UnicodeDecodeError:
-            # Si falla UTF-8 (archivo guardado en encoding antiguo, común en Windows),
-            # reintenta con latin-1 que acepta cualquier byte del rango 0-255
             with open(source_file, 'r', encoding='latin-1') as f:
                 source = f.read()
 
@@ -349,15 +401,13 @@ def main():
                    show_ast=show_ast,
                    show_symbols=not hide_symbols,
                    label=f"Archivo: {source_file}")
-        return   # Termina aquí; no ejecuta los ejemplos embebidos
+        return
 
-    # ── Modo demo: ejecuta todos los ejemplos embebidos ────────────────────
     print("\n" + "#" * 60)
     print("  MINI-INTERPRETE — Calculadora Extendida con PLY")
     print("  Sintaxis en Espanol")
     print("#" * 60)
 
-    # Itera sobre los ejemplos: cada uno es una tupla (etiqueta, código_fuente)
     for label, source in EJEMPLOS:
         run_source(source,
                    show_tokens=show_tokens,
@@ -370,11 +420,5 @@ def main():
     print("=" * 60 + "\n")
 
 
-# =============================================================================
-# PUNTO DE ENTRADA DEL SCRIPT
-# Este bloque garantiza que main() solo se ejecute cuando el archivo se corre
-# directamente (python main.py), no cuando se importa desde otro módulo.
-# Es una convención estándar de Python para módulos ejecutables.
-# =============================================================================
 if __name__ == '__main__':
     main()

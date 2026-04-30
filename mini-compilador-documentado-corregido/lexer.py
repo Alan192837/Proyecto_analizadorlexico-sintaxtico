@@ -76,6 +76,10 @@ tokens = [
     'LITERAL_CADENA',   # Cadena entre comillas, ej: "hola mundo"
     'ID',               # Identificador de variable, ej: miContador
 
+    # ── Tokens de error semántico/léxico ──────────────────────────────────
+    'ID_CON_ERROR',     # Identificador con caracteres ilegales, ej: ent@ro
+    'CADENA_ERROR',     # Cadena abierta sin comilla de cierre, ej: "hola mundo
+
     # ── Operadores aritméticos ─────────────────────────────────────────────
     'MAS',      # Suma:        +
     'MENOS',    # Resta:       -
@@ -146,7 +150,87 @@ t_COMA      = r','
 # 4. REGLAS CON ACCIÓN — requieren función Python
 #    Se usan cuando, además de reconocer el patrón, hay que transformar
 #    el valor del token o actualizar estado interno del lexer.
+#
+#    ORDEN IMPORTANTE en PLY:
+#    Las funciones t_* se ordenan por longitud de su docstring (la regex).
+#    Las reglas más específicas o largas deben ir primero para que PLY
+#    no aplique una regla más corta antes de tiempo.
+#    Por eso CADENA_ERROR y ID_CON_ERROR van antes de LITERAL_CADENA e ID.
 # =============================================================================
+
+def t_CADENA_ERROR(t):
+    r'"[^"\n]*$'
+    """
+    CORRECCIÓN 3 — Cadena sin comilla de cierre.
+
+    Detecta una comilla de apertura seguida de cualquier contenido que
+    llega hasta el FIN DE LÍNEA (ancla $) sin encontrar la comilla de cierre.
+
+    Esto ocurre cuando el programador escribe:
+        mostrar("Hola mundo);    ← la ) y ; quedan dentro de la "cadena"
+
+    El patrón [^"\\n]* acepta cualquier carácter EXCEPTO comilla (") y
+    salto de línea (\\n), lo que limita el error al renglón actual.
+    La ancla $ garantiza que solo aplica cuando NO hay comilla de cierre
+    antes del fin de línea.
+
+    Comportamiento:
+        - Guarda el contenido sin la comilla inicial como valor del token.
+        - Reporta el error en consola indicando línea y contenido.
+        - El token CADENA_ERROR queda registrado para .tok y .tab.
+        - El parser lo recibirá pero lo tratará como error sintáctico.
+
+    Parámetro:
+        t: objeto LexToken de PLY
+    Retorna:
+        t (LexToken): tipo CADENA_ERROR, value = texto sin comilla inicial
+    """
+    # Conserva el contenido completo (sin la comilla inicial) como evidencia
+    t.value = t.value[1:]
+    print(f"[Lexico] Cadena sin cerrar en linea {t.lineno}: \"{t.value}")
+    return t
+
+
+def t_ID_CON_ERROR(t):
+    r'[a-zA-Z_][a-zA-Z0-9_]*(?:[^a-zA-Z0-9_\s\+\-\*\/\=\<\>\!\(\)\{\}\;\,\"\n][a-zA-Z0-9_]*)+'
+    """
+    CORRECCIÓN 2 — Identificador con caracteres ilegales intercalados.
+
+    El problema original: cuando el lexer encontraba 'ent@ro', reconocía
+    primero 'ent' como ID, luego '@' disparaba t_error (un carácter a la
+    vez), y finalmente 'ro' como otro ID. Resultado: tres tokens separados.
+
+    Esta regla captura TODO en una sola pasada:
+        - Empieza igual que un ID normal: [a-zA-Z_][a-zA-Z0-9_]*
+        - Continúa con grupos opcionales que incluyen UN carácter ilegal
+          seguido de más caracteres alfanuméricos: (?:[carácter_ilegal][alnum]*)
+        - El grupo se repite (*) para cubrir múltiples errores: en@t#ro
+
+    Caracteres que se consideran "ilegales dentro de un ID":
+        Cualquier cosa que NO sea: letras, dígitos, guion bajo, espacios,
+        operadores reconocidos (+−*/=<>!), delimitadores ((){}),
+        puntuación (;,") ni saltos de línea.
+        Básicamente: @, #, $, %, ~, `, ^, &, |, ?, etc.
+
+    Comportamiento:
+        - Captura el lexema completo (ej. 'ent@ro') en un solo token.
+        - Reporta el error indicando el símbolo ilegal encontrado.
+        - Devuelve el token para que aparezca en .tok y .tab.
+
+    Parámetro:
+        t: objeto LexToken
+    Retorna:
+        t (LexToken): tipo ID_CON_ERROR, value = lexema completo (ej. 'ent@ro')
+    """
+    # Busca los caracteres ilegales dentro del lexema para incluirlos en el
+    # mensaje de error. Un carácter es ilegal si no es alfanumérico ni guion bajo.
+    import re
+    ilegales = re.findall(r'[^a-zA-Z0-9_]', t.value)
+    simbolos = ', '.join(f"'{c}'" for c in ilegales)
+    print(f"[Lexico] Identificador con caracter(es) ilegal(es) {simbolos} "
+          f"en linea {t.lineno}: '{t.value}'")
+    return t
+
 
 def t_NUMERO(t):
     r'\d+'
@@ -160,7 +244,6 @@ def t_NUMERO(t):
     Retorna:
         t (LexToken): con t.value convertido a int
     """
-    # Convierte el texto reconocido (ej. "42") al entero Python equivalente
     t.value = int(t.value)
     return t
 
@@ -175,12 +258,15 @@ def t_LITERAL_CADENA(t):
     La acción elimina las comillas delimitadoras para que el valor del
     token sea el contenido puro de la cadena.
 
+    NOTA: Esta regla solo aplica cuando la cadena SÍ tiene comilla de cierre.
+    Si no la tiene, t_CADENA_ERROR la captura primero (tiene mayor prioridad
+    por estar definida antes en el archivo).
+
     Parámetro:
         t: objeto LexToken
     Retorna:
         t (LexToken): con t.value sin las comillas (ej. "hola" → hola)
     """
-    # Quita la comilla inicial [0] y la comilla final [-1]
     t.value = t.value[1:-1]
     return t
 
@@ -188,24 +274,27 @@ def t_LITERAL_CADENA(t):
 def t_ID(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
     """
-    Reconoce un identificador: empieza con letra o guion bajo, seguido
-    de letras, dígitos o guiones bajos.
+    Reconoce un identificador LIMPIO: empieza con letra o guion bajo,
+    seguido solo de letras, dígitos o guiones bajos. Sin caracteres ilegales.
 
     Después de reconocerlo, verifica si coincide con una palabra reservada.
     Si sí, cambia el tipo de token para que el parser lo trate como palabra
     clave y no como nombre de variable.
 
+    NOTA: Esta regla solo aplica cuando el identificador no contiene
+    caracteres ilegales. Si los contiene, t_ID_CON_ERROR lo captura
+    primero por tener un patrón más largo (PLY prefiere el match más largo).
+
     Ejemplos de comportamiento:
-        'contador' → tipo ID      (variable normal)
-        'si'       → tipo SI      (palabra reservada)
-        'y'        → tipo Y       (operador lógico reservado)
+        'contador' → tipo ID          (variable normal)
+        'si'       → tipo SI          (palabra reservada)
+        'ent@ro'   → tipo ID_CON_ERROR (capturado por la regla anterior)
 
     Parámetro:
         t: objeto LexToken
     Retorna:
         t (LexToken): con t.type ajustado si es palabra reservada
     """
-    # Busca el texto en el diccionario de reservadas; si no está, devuelve 'ID'
     t.type = reserved.get(t.value, 'ID')
     return t
 
@@ -214,10 +303,8 @@ def t_COMENTARIO(t):
     r'//[^\n]*'
     """
     Reconoce comentarios de línea al estilo C++: desde '//' hasta el fin
-    de la línea. La función NO retorna el token (simplemente termina sin
-    'return t'), lo que hace que PLY descarte el comentario por completo.
-
-    Los comentarios no producen ningún token; son invisibles para el parser.
+    de la línea. La función NO retorna el token, lo que hace que PLY
+    descarte el comentario por completo.
 
     Parámetro:
         t: objeto LexToken (descartado implícitamente al no retornarlo)
@@ -232,60 +319,63 @@ def t_newline(t):
     del lexer. Este contador es fundamental para que los mensajes de error
     indiquen la línea exacta del problema en el código fuente.
 
-    Nota: los saltos de línea NO generan token; solo actualizan el contador.
-
     Parámetro:
         t: objeto LexToken con t.value = secuencia de '\\n'
     """
-    # len(t.value) cuenta cuántos saltos de línea hay en el match actual
-    # (puede ser más de uno si hay líneas en blanco consecutivas)
     t.lexer.lineno += len(t.value)
     # No retornamos t → PLY descarta los saltos de línea como tokens
 
 
 # Caracteres que el lexer ignora completamente entre tokens.
-# Incluye espacio, tabulación y retorno de carro (Windows \r).
 t_ignore = ' \t\r'
 
 
 def t_error(t):
     """
-    Manejador de error léxico: se invoca cuando el lexer encuentra un
-    carácter que no encaja con ninguna regla definida.
+    CORRECCIÓN 1 — Manejador de error léxico mejorado.
 
-    Estrategia de recuperación: reportar el carácter problemático e
-    intentar continuar (skip(1) avanza un carácter para no entrar en
-    un bucle infinito).
+    El manejador original solo imprimía un mensaje y avanzaba un carácter,
+    lo que causaba que caracteres ilegales AISLADOS (no pegados a un ID)
+    se perdieran y no aparecieran en .tok ni en .tab.
+
+    Ahora se genera un token especial de tipo 'ERROR_LEXICO' con el
+    carácter problemático como valor, y se retorna para que:
+        - Aparezca en la lista de tokens de tokenize()
+        - Se registre en .tok con la nota de error
+        - Se registre en .tab con la nota de error
+
+    Caracteres ilegales pegados a identificadores (ej: ent@ro) son
+    capturados por t_ID_CON_ERROR ANTES de llegar aquí. Este manejador
+    solo recibe caracteres verdaderamente aislados (ej: una @ sola).
 
     Parámetro:
         t: objeto LexToken donde t.value[0] es el carácter ilegal
     """
-    print(f"[Lexico] Caracter ilegal '{t.value[0]}' en linea {t.lineno}")
-    # Avanza un carácter para que el lexer intente recuperarse
-    # y continúe tokenizando el resto del fuente
+    # Captura solo el carácter ilegal como lexema del token de error
+    t.type  = 'ERROR_LEXICO'
+    t.value = t.value[0]
+    print(f"[Lexico] Caracter ilegal '{t.value}' en linea {t.lineno}")
+    # Avanza un carácter para continuar el análisis del resto del fuente
     t.lexer.skip(1)
+    return t   # ← CLAVE: retornar el token para que aparezca en los reportes
+
+
+# ERROR_LEXICO no puede estar en 'tokens' porque PLY no lo define como regla
+# normal (viene de t_error). Lo agregamos manualmente para que los reportes
+# en main.py puedan reconocerlo sin causar errores en el parser.
+# El parser nunca lo verá porque el código con errores léxicos no llega
+# a ejecutarse normalmente; pero sí debe aparecer en .tok y .tab.
+tokens = list(tokens) + ['ERROR_LEXICO']
 
 
 # =============================================================================
 # 5. CONSTRUCCIÓN DEL LEXER
-#    lex.lex() escanea el módulo actual, recopila todas las reglas t_* y
-#    construye el autómata finito determinista (DFA) que realiza el análisis.
-#    Debe llamarse una vez al importar el módulo.
 # =============================================================================
 lexer = lex.lex()
 
 
 # =============================================================================
 # 6. FUNCIÓN DE UTILIDAD — tokenize()
-#    Expone el lexer al resto del sistema de forma segura, usando un clon
-#    para no consumir los tokens que el parser necesitará después.
-#
-#    Sin lexer.clone():
-#        Si alguien llamara tokenize() antes de parse(), el lexer interno
-#        quedaría al final del texto y parse() no vería ningún token.
-#    Con lexer.clone():
-#        Cada llamada obtiene una copia independiente; el lexer original
-#        permanece intacto y disponible para el parser.
 # =============================================================================
 
 def tokenize(source_code: str, verbose: bool = True):
@@ -297,26 +387,22 @@ def tokenize(source_code: str, verbose: bool = True):
 
     Parámetros:
         source_code (str) : texto del programa a analizar
-        verbose     (bool): si es True, imprime cada token en pantalla;
-                            útil para depuración (flag --tokens en main.py)
+        verbose     (bool): si es True, imprime cada token en pantalla
 
     Retorna:
         token_list (list[LexToken]): lista de todos los tokens generados,
-                                     en el orden en que aparecen en el fuente
+                                     incluyendo tokens de error (ID_CON_ERROR,
+                                     CADENA_ERROR, ERROR_LEXICO) para que
+                                     aparezcan en los reportes .tok y .tab
     """
-    # Crea una copia independiente del lexer para esta tokenización
     lexer_clone = lexer.clone()
-
-    # Entrega el texto fuente al clon para que lo analice
     lexer_clone.input(source_code)
 
-    token_list = []   # Acumula los tokens reconocidos
+    token_list = []
 
-    # Itera sobre todos los tokens hasta que el clon llegue al final del fuente
     for tok in lexer_clone:
         token_list.append(tok)
         if verbose:
-            # Formato tabular: tipo del token, valor y número de línea
             print(f"  Token({tok.type:15s}) -> {str(tok.value)!r:22} linea {tok.lineno}")
 
     return token_list
