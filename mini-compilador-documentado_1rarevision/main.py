@@ -38,206 +38,196 @@ from interpreter import Interpreter # Fase 3: ejecución
 
 
 # =============================================================================
+# CATÁLOGO DE TOKENS
+# Mapea cada tipo de token PLY a (número, nombre_descriptivo) para el reporte.
+# El número 75 para PAR_IZQ es el identificador canónico del paréntesis.
+# =============================================================================
+
+TOKEN_CATALOG = {
+    # Palabras reservadas (1-12)
+    'ENTERO'      : (1,  'EnteroTipo'),
+    'CADENA_TIPO' : (2,  'CadenaTipo'),
+    'LOGICO_TIPO' : (3,  'LogicoTipo'),
+    'SI'          : (4,  'Si'),
+    'SINO'        : (5,  'Sino'),
+    'LEER'        : (6,  'Leer'),
+    'MOSTRAR'     : (7,  'Mostrar'),
+    'VERDADERO'   : (8,  'Verdadero'),
+    'FALSO'       : (9,  'Falso'),
+    'Y'           : (10, 'Y'),
+    'O'           : (11, 'O'),
+    'NO'          : (12, 'No'),
+    # Literales e identificadores (20-22)
+    'NUMERO'        : (20, 'Numero'),
+    'LITERAL_CADENA': (21, 'Cadena'),
+    'ID'            : (22, 'Identificador'),
+    # Operadores aritméticos (30-33)
+    'MAS'   : (30, 'Suma'),
+    'MENOS' : (31, 'Resta'),
+    'POR'   : (32, 'Multiplicacion'),
+    'ENTRE' : (33, 'Division'),
+    # Operadores relacionales (40-45)
+    'MAYOR_IG': (40, 'Mayor_Igual'),
+    'MENOR_IG': (41, 'Menor_Igual'),
+    'IGUAL'   : (42, 'Igual'),
+    'DISTINTO': (43, 'Distinto'),
+    'MAYOR'   : (44, 'Mayor'),
+    'MENOR'   : (45, 'Menor'),
+    # Asignación (50)
+    'ASIGNAR': (50, 'Asignacion'),
+    # Puntuación (60-61)
+    'PUNTOCOM': (60, 'PuntoyComa'),
+    'COMA'    : (61, 'Coma'),
+    # Delimitadores — llaves (70-71), paréntesis (75-76)
+    'LLA_IZQ': (70, 'LlaveIzq'),
+    'LLA_DER': (71, 'LlaveDer'),
+    'PAR_IZQ': (75, 'Paren'),
+    'PAR_DER': (76, 'ParenDer'),
+}
+
+
+# =============================================================================
 # GENERADORES DE REPORTES
 # Estas funciones producen archivos de salida con información del proceso
 # de compilación; son independientes de la ejecución del programa fuente.
 # =============================================================================
 
-def generar_reporte_compilador(tokens, tabla_simbolos, filename="progfte.txt"):
+def generar_tabla_simbolos(tabla_simbolos, tokens, filename="progfte.tab"):
     """
-    Genera un reporte completo de la compilación en un archivo de texto.
+    Genera el reporte de la tabla de símbolos en formato .tab con cuatro columnas:
+        No     — número de orden del símbolo
+        LEXEMA — nombre de la variable tal como aparece en el fuente
+        TOKEN  — número y nombre del token (siempre 22 Identificador para variables)
+        REF    — renglón del fuente donde se declaró la variable
 
-    El reporte tiene dos secciones:
-        1. Análisis léxico: lista de todos los tokens con línea, tipo y valor.
-        2. Tabla de símbolos: estado final de todas las variables declaradas.
+    Para obtener REF se escanean los tokens buscando el patrón TIPO→ID que
+    corresponde a una declaración; el renglón del ID es la referencia.
 
-    Este archivo es útil para depuración y para entender cómo el compilador
-    interpretó el programa fuente.
+    Se genera SIEMPRE, incluso cuando hay errores sintácticos, mostrando
+    únicamente los símbolos declarados en enunciados válidos (el parser
+    recupera errores y devuelve un AST parcial que el intérprete ejecuta).
 
     Parámetros:
-        tokens          (list[LexToken]) : lista de tokens producida por tokenize()
-        tabla_simbolos  (SymbolTable)    : tabla de símbolos del intérprete
-                                          tras la ejecución completa del programa
-        filename        (str)            : nombre del archivo de salida;
-                                          por defecto "progfte.txt"
-
-    No retorna valor. Efectos secundarios:
-        - Crea o sobreescribe el archivo indicado.
-        - Imprime confirmación o error en stdout.
-
+        tabla_simbolos (SymbolTable)  : tabla de símbolos del intérprete
+        tokens         (list[LexToken]): lista de tokens para extraer REF
+        filename       (str)          : archivo de salida; por defecto "progfte.tab"
     """
+    # Escanea los tokens para mapear nombre_variable → renglón de declaración.
+    # Patrón de declaración: token TIPO (ENTERO/CADENA_TIPO/LOGICO_TIPO) seguido de ID.
+    _tipos_decl = {'ENTERO', 'CADENA_TIPO', 'LOGICO_TIPO'}
+    refs = {}
+    for i, t in enumerate(tokens):
+        if t.type in _tipos_decl and i + 1 < len(tokens):
+            siguiente = tokens[i + 1]
+            if siguiente.type == 'ID' and siguiente.value not in refs:
+                refs[siguiente.value] = siguiente.lineno
+
+    # Token canónico de todos los identificadores de variable
+    num_id, nombre_id = TOKEN_CATALOG['ID']   # 22, 'Identificador'
+    token_str = f"{num_id} {nombre_id}"
+
     try:
-        # Abre el archivo en escritura con UTF-8 para soportar acentos y ñ
         with open(filename, "w", encoding="utf-8") as f:
-
-            # ── Encabezado del reporte ────────────────────────────────────
-            f.write("="*60 + "\n")
-            f.write("       REPORTE DE COMPILACIÓN - MINI-LENGUAJE\n")
-            f.write("="*60 + "\n\n")
-
-            # ── Sección 1: Análisis léxico ────────────────────────────────
-            f.write("1. ANÁLISIS LÉXICO (LISTA DE TOKENS)\n")
-            f.write("-" * 40 + "\n")
-            # Encabezado de columnas con ancho fijo para alineación visual
-            f.write(f"{'Línea':<8} {'Tipo de Token':<18} {'Valor':<15}\n")
-            f.write("-" * 40 + "\n")
-            # Una línea por token; repr() en el valor muestra las comillas
-            # en cadenas y hace explícito el tipo del valor
-            for t in tokens:
-                f.write(f"{t.lineno:<8} {t.type:<18} {repr(t.value):<15}\n")
-            f.write("\n\n")
-
-            # ── Sección 2: Tabla de símbolos ──────────────────────────────
-            f.write("2. TABLA DE SÍMBOLOS (ESTADO FINAL)\n")
-            f.write("-" * 40 + "\n")
-
-            # Caso especial: ninguna variable fue declarada
             if not tabla_simbolos._table:
-                f.write("No se declararon variables.\n")
+                f.write("TABLA DE SÍMBOLOS VACÍA\n")
+                f.write("(Sin variables declaradas o todos los enunciados tuvieron error)\n")
             else:
-                f.write(f"{'Variable':<15} {'Tipo':<12} {'Valor Final':<15}\n")
-                f.write("-" * 40 + "\n")
-                for name, info in tabla_simbolos._table.items():
-                    val = info['value']
-                    # Convierte True/False a verdadero/falso del lenguaje
-                    if isinstance(val, bool):
-                        val = "verdadero" if val else "falso"
-                    f.write(f"{name:<15} {info['type']:<12} {str(val):<15}\n")
+                # Encabezado de columnas
+                f.write(f"{'No':<6} {'LEXEMA':<20} {'TOKEN':<22} {'REF'}\n")
+                f.write("-" * 52 + "\n")
+                for no, name in enumerate(tabla_simbolos._table, start=1):
+                    ref = refs.get(name, '-')
+                    f.write(f"{no:<6} {name:<20} {token_str:<22} {ref}\n")
 
-            # ── Pie del reporte ────────────────────────────────────────────
-            f.write("\n" + "="*60 + "\n")
-            f.write("FIN DEL REPORTE\n")
-
-        print(f"\n[Sistema] Reporte integral generado en: {filename}")
+        print(f"[Sistema] Tabla de símbolos generada en: {filename}")
 
     except Exception as e:
-        # Captura amplia porque pueden fallar tanto la apertura del archivo
-        # como el formateo de algún token con valor inusual
+        print(f"[Error] No se pudo generar la tabla de símbolos: {e}")
+
+
+def generar_reporte_compilador(tokens, errores_lexicos, filename="progfte.tok"):
+    """
+    Genera el reporte de lexemas y tokens en formato .tok.
+
+    Cada entrada ocupa una línea con el formato:
+        Renglón: X, Lexema: Y, Token: Z Nombre
+    Los errores léxicos (caracteres no reconocidos) se intercalan según
+    su número de línea con el formato:
+        Renglón: X, Símbolo no identificado (char) (posible error)
+
+    Parámetros:
+        tokens         (list[LexToken])      : tokens producidos por tokenize()
+        errores_lexicos(list[tuple[int,str]]): errores (lineno, char) de tokenize()
+        filename       (str)                 : archivo de salida; por defecto "progfte.tok"
+    """
+    try:
+        with open(filename, "w", encoding="utf-8") as f:
+            # Combina tokens y errores en una sola lista; ordena por (renglón, lexpos)
+            # para respetar el orden exacto de aparición dentro de cada línea
+            entradas = []
+            for t in tokens:
+                entradas.append(('token', t.lineno, t.lexpos, t))
+            for lineno, lexpos, char in errores_lexicos:
+                entradas.append(('error', lineno, lexpos, char))
+            entradas.sort(key=lambda x: (x[1], x[2]))
+
+            for entrada in entradas:
+                if entrada[0] == 'token':
+                    t = entrada[3]
+                    num, nombre = TOKEN_CATALOG.get(t.type, (0, t.type))
+                    lexema = f'"{t.value}"' if t.type == 'LITERAL_CADENA' else str(t.value)
+                    f.write(f"Renglón: {t.lineno}, Lexema: {lexema}, Token: {num} {nombre}\n")
+                else:
+                    lineno, char = entrada[1], entrada[3]
+                    f.write(f"Renglón: {lineno}, Símbolo no identificado ({char}) (posible error)\n")
+
+        print(f"\n[Sistema] Reporte de tokens generado en: {filename}")
+
+    except Exception as e:
         print(f"[Error] No se pudo generar el reporte: {e}")
 
 
-def generar_codigo_depurado(tokens, filename="prog_depurado.dep"):
+def generar_codigo_depurado(tokens, errores_lexicos, filename="prog_depurado.dep"):
     """
-    Reconstruye el código fuente a partir de los tokens, eliminando
-    comentarios y normalizando espacios, luego lo escribe en un archivo.
+    Reconstruye el código fuente a partir de los tokens en formato compacto:
+    todos los tokens —incluidos los caracteres ilegales— concatenados en una
+    sola línea sin espacios ni saltos de línea, eliminando comentarios.
 
-    Esta técnica se conoce como "pretty-printing" o "source reconstruction":
-    a partir de los tokens (que ya no contienen comentarios ni espacios
-    irregulares) se reconstruye el código de forma limpia.
+    Los errores léxicos se insertan en su posición exacta (lexpos) dentro
+    del stream, por lo que aparecen donde estaban en el fuente original.
 
-    La reconstrucción respeta los números de línea originales insertando
-    saltos de línea cuando un token pertenece a una línea posterior a la
-    última escrita, lo que preserva la estructura visual del programa.
-
+    Ejemplo de salida: mostrar("Multiplicacion: "+(@ *b));
 
     Parámetros:
-        tokens   (list[LexToken]): lista de tokens del programa fuente
-        filename (str)           : nombre del archivo de salida;
-                                   por defecto "prog_depurado.dep"
-
-    No retorna valor. Efectos secundarios:
-        - Crea o sobreescribe el archivo indicado.
-        - Imprime confirmación o error en stdout.
+        tokens         (list[LexToken])           : tokens del programa fuente
+        errores_lexicos(list[tuple[int,int,str]]) : errores (lineno, lexpos, char)
+        filename       (str)                      : archivo de salida; por defecto "prog_depurado.dep"
     """
     try:
         with open(filename, "w", encoding="utf-8") as f:
-            # Rastrea la línea que se está escribiendo actualmente
-            # para saber cuántos saltos de línea insertar antes del próximo token
-            linea_actual = 1
-            '''
-            codigo = ""
-            
-            for i, t in enumerate(tokens):
-                # Si el token pertenece a una línea posterior a la actual,
-                # inserta los saltos de línea necesarios para posicionarse ahí
-                #if t.lineno > linea_actual:
-                #    f.write("\n" * (t.lineno - linea_actual))
-                #    linea_actual = t.lineno
-
-                # Escribe el valor del token; para cadenas las rodea de comillas
-                # ya que el lexer las quitó al tokenizar
-                if t.type == 'LITERAL_CADENA':
-                    codigo += f'"{t.value}"'
-                else:
-                    codigo += str(t.value)
-
-                #if i + 1 < len(tokens) and tokens[i+1].lineno == t.lineno:
-                  #  f.write(" ")
-
-            '''
-
-            codigo = ""
-
+            # Mezcla tokens y caracteres ilegales ordenados por posición en el fuente
+            entradas = []
             for t in tokens:
-                if t.type == 'LITERAL_CADENA':
-                    codigo += f'"{t.value}"'
-                else:
-                    codigo += str(t.value)
+                entradas.append(('token', t.lexpos, t))
+            for _, lexpos, char in errores_lexicos:
+                entradas.append(('error', lexpos, char))
+            entradas.sort(key=lambda x: x[1])
 
-            with open(filename, "w", encoding="utf-8") as f:
-                f.write(codigo.strip())
+            for entrada in entradas:
+                if entrada[0] == 'token':
+                    t = entrada[2]
+                    # Las cadenas recuperan sus comillas (el lexer las quitó al tokenizar)
+                    if t.type == 'LITERAL_CADENA':
+                        f.write(f'"{t.value}"')
+                    else:
+                        f.write(str(t.value))
+                else:
+                    f.write(entrada[2])   # escribe el carácter ilegal tal cual
 
         print(f"[Sistema] Código fuente depurado generado en: {filename}")
 
     except Exception as e:
         print(f"[Error] No se pudo generar el código depurado: {e}")
-
-def construir_tabla_simbolos(tokens):
-    tabla = []
-    contador = 1
-    mapa_ids = {}
-
-    for t in tokens:
-        lexema = str(t.value)
-        token = t.type
-
-        # Clasificación simple
-        if token in ['ID']:
-            tipo = 'id'
-
-            # Evitar duplicados
-            if lexema not in mapa_ids:
-                mapa_ids[lexema] = contador
-                tabla.append((contador, lexema, tipo, ''))
-                contador += 1
-
-        elif token in ['ENTERO', 'CADENA_TIPO', 'LOGICO_TIPO']:
-            tabla.append((contador, lexema, token, ''))
-            contador += 1
-
-        elif token in ['MOSTRAR', 'LEER', 'SI', 'SINO']:
-            tabla.append((contador, lexema, token, 'Pal_res'))
-            contador += 1
-
-        elif token in ['PAR_IZQ']:
-            tabla.append((contador, lexema, 'PAREN', 75))
-            contador += 1
-
-    return tabla
-
-def imprimir_tabla_simbolos(tabla):
-    print("\nTABLA DE SIMBOLOS\n")
-    print(f"{'No':<5}{'LEXEMA':<10}{'TOKEN':<10}{'REF':<10}")
-    
-    for fila in tabla:
-        no, lexema, token, ref = fila
-        print(f"{no:<5}{lexema:<10}{token:<10}{str(ref):<10}")
-
-def imprimir_lista_tokens(tokens):
-    print("\nLista de lexemas\n")
-
-    for t in tokens:
-        tipo_extra = ""
-
-        if t.type in ['MOSTRAR', 'LEER', 'SI']:
-            tipo_extra = "Pal_resa"
-        elif t.type == 'PAR_IZQ':
-            tipo_extra = "Paren"
-        elif t.type == 'ID':
-            tipo_extra = "id"
-
-        print(f"Renglón: {t.lineno}, Lexema: {t.value}, Token: {t.type} {tipo_extra}")
-
 
 
 # =============================================================================
@@ -278,12 +268,7 @@ def run_source(source: str, show_tokens: bool = False, show_ast: bool = False,
     # ── Fase 1: Análisis léxico ────────────────────────────────────────────
     # tokenize() siempre se ejecuta (para generar el reporte y el código depurado)
     # pero solo imprime en pantalla si show_tokens es True
-    tokens = tokenize(source, verbose=show_tokens)
-
-    tabla = construir_tabla_simbolos(tokens)
-
-    imprimir_tabla_simbolos(tabla)
-    imprimir_lista_tokens(tokens)
+    tokens, errores_lexicos = tokenize(source, verbose=show_tokens)
 
     # ── Fase 2: Análisis sintáctico ────────────────────────────────────────
     # parse() devuelve el AST o None si hay errores sintácticos
@@ -306,16 +291,13 @@ def run_source(source: str, show_tokens: bool = False, show_ast: bool = False,
         print(f"\n[Error de ejecucion] {e}")
 
     # ── Fase 4: Generación de reportes ────────────────────────────────────
-    # Solo genera los archivos si el parsing fue exitoso (ast no es None),
-    # ya que sin AST la tabla de símbolos estará vacía y los archivos
-    # no tendrían información útil.
-    if ast is not None:
-        interp.save_symbols("resultado_simbolos.txt")
-        generar_codigo_depurado(tokens, "prog_depurado.dep")
-
-    # El reporte léxico + tabla de símbolos se genera siempre,
-    # incluso si hubo errores, porque los tokens sí fueron producidos
-    generar_reporte_compilador(tokens, interp.symbols, "progfte.txt")
+    # Todos los reportes se generan siempre:
+    #  - progfte.tab : tabla con los símbolos declarados en enunciados válidos
+    #                  (el parser recupera errores y el intérprete ejecuta lo que pudo)
+    #  - prog_depurado.dep / progfte.tok : basados en tokens, independientes del AST
+    generar_tabla_simbolos(interp.symbols, tokens, "progfte.tab")
+    generar_codigo_depurado(tokens, errores_lexicos, "prog_depurado.dep")
+    generar_reporte_compilador(tokens, errores_lexicos, "progfte.tok")
 
 
 # =============================================================================

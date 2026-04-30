@@ -1,4 +1,4 @@
-No   LEXEMA              TOKEN               REF       
+No   LEXEMA                                  TOKEN               REF       
 ------------------------------------------------------------
 1    entero                                  ENTERO              101       
 2    a                                       ID                  200       
@@ -43,7 +43,7 @@ No   LEXEMA              TOKEN               REF
 41   +                                       MAS                 80        
 42   (                                       PAR_IZQ             75        
 43   a                                       ID                  200       
-44   *                                       POR                 82        
+44   +                                       MAS                 80        
 45   b                                       ID                  200       
 46   )                                       PAR_DER             76        
 47   )                                       PAR_DER             76        
@@ -53,9 +53,8 @@ No   LEXEMA              TOKEN               REF
 51   Division:                               LITERAL_CADENA      202       
 52   +                                       MAS                 80        
 53   (                                       PAR_IZQ             75        
-54   a                                       ID                  200       
-55   /                                       ENTRE               83        
-56   b                                       ID                  200       
+54   /                                       ENTRE               83        
+55   b                                       ID                  200       
+56   )                                       PAR_DER             76        
 57   )                                       PAR_DER             76        
-58   )                                       PAR_DER             76        
-59   ;                                       PUNTOCOM            79        
+58   ;                                       PUNTOCOM            79        

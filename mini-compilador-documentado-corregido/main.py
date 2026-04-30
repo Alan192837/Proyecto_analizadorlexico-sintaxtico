@@ -173,7 +173,11 @@ def generar_tabla(tokens, filename="progfte.tab"):
             f.write(f"{'No':<5}{'LEXEMA':<40}{'TOKEN':<20}{'REF':<10}{'NOTA'}\n")
             f.write("-" * 80 + "\n")
 
+<<<<<<< HEAD
             # Referencias fijas para tokens no-ID
+=======
+            # Referencias
+>>>>>>> 53bcadde508435fc9f376317e9e30a6d92cab4bd
             referencias = {
                 'MAIN'          : 100,
                 'PAR_IZQ'       : 75,
@@ -331,6 +335,14 @@ def run_source(source: str, show_tokens: bool = False, show_ast: bool = False,
 
     if ast is not None:
         generar_codigo_depurado(tokens, "progfte.dep")
+<<<<<<< HEAD
+=======
+        generar_tabla(tokens, "progfte.tab")
+
+    # SIEMPRE generar tokens
+    generar_archivo_tokens(tokens, "progfte.tok")
+    
+>>>>>>> 53bcadde508435fc9f376317e9e30a6d92cab4bd
 
 
 # =============================================================================
