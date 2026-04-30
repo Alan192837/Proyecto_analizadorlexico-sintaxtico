@@ -8,7 +8,7 @@ entero b = 20;
 //Pedimos los datos al usuario
 mostrar("Impresion de valores de operacions ");
 
-mostrar("Suma: " + (a + b));
+mostrar("Suma: " + (d + b));
 mostrar("Resta: " + (a - b));
 mostrar("Multiplicacion: " + (a * b));
 mostrar("Division: " + (a / b));
