@@ -1,0 +1,12 @@
+No   LEXEMA                                  TOKEN               REF       NOTA
+--------------------------------------------------------------------------------
+1    entero                                  ENTERO              101       
+2    a                                       ID                  300       
+3    =                                       ASIGNAR             84        
+4    42                                      NUMERO              201       
+5    ;                                       PUNTOCOM            79        
+6    mostrar                                 MOSTRAR             106       
+7    (                                       PAR_IZQ             75        
+8    a                                       ID                  300       
+9    )                                       PAR_DER             76        
+10   ;                                       PUNTOCOM            79        

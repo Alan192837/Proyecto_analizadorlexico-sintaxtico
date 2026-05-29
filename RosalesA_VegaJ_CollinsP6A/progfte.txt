@@ -1,0 +1,15 @@
+
+//Probar funciones basicas:
+
+//Zona de declaracion de variables
+entero a = 10;
+entero b = 20;
+
+//Codigo para mostrar en consola
+
+mostrar("Impresion de valores de operacions ");
+mostrar("Suma: " + (a + b));
+mostrar("Resta: " + (a - b));
+mostrar("Multiplicacion: " + (a * b));
+mostrar("Division: " + (a / b));
+mostrar("Hola mundo);
