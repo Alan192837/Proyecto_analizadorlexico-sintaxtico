@@ -1,0 +1,25 @@
+==============================================================================
+   REPORTE DE ANALISIS SEMANTICO
+==============================================================================
+
+RESULTADO: 3 ERROR(ES) SEMANTICO(S).
+El programa no se ejecuta hasta corregirlos.
+
+#   CODIGO    LINEA   COLUMNA   DESCRIPCION
+------------------------------------------------------------------------------
+1   E-S01     6       8         La variable 'a' no fue declarada, o ya no esta en alcance, y no se le puede asignar un valor.
+                                Sugerencia: Declarala antes de usarla: logico a = ...;
+
+2   E-S01     8       9         La variable 'd' se usa pero no fue declarada, o ya no esta en alcance.
+                                Sugerencia: Declarala antes de usarla, por ejemplo: entero d = 0;
+
+3   E-S01     9       9         La variable 'a' se usa pero no fue declarada, o ya no esta en alcance.
+                                Sugerencia: Declarala antes de usarla, por ejemplo: entero a = 0;
+
+==============================================================================
+DATOS DEL ANALISIS
+------------------------------------------------------------------------------
+Pasadas sobre el AST            : 1 (una sola pasada)
+Simbolos declarados             : 1
+Profundidad max. de la pila sem.: 1
+==============================================================================

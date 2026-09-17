@@ -1,0 +1,26 @@
+No   LEXEMA                                  TOKEN               REF       NOTA
+--------------------------------------------------------------------------------
+1    entero                                  ENTERO              101       
+2    a                                       ID                  300       
+3    =                                       ASIGNAR             84        
+4    diez                                    LITERAL_CADENA      202       
+5    entero                                  ENTERO              101       
+6    a                                       ID                  300       
+7    =                                       ASIGNAR             84        
+8    verdadero                               VERDADERO           108       
+9    ;                                       PUNTOCOM            79        
+10   logico                                  LOGICO_TIPO         103       
+11   c                                       ID                  301       
+12   =                                       ASIGNAR             84        
+13   verdadero                               VERDADERO           108       
+14   ;                                       PUNTOCOM            79        
+15   mostrar                                 MOSTRAR             106       
+16   (                                       PAR_IZQ             75        
+17   d                                       ID                  302       
+18   )                                       PAR_DER             76        
+19   ;                                       PUNTOCOM            79        
+20   mostrar                                 MOSTRAR             106       
+21   (                                       PAR_IZQ             75        
+22   a                                       ID                  300       
+23   )                                       PAR_DER             76        
+24   ;                                       PUNTOCOM            79        

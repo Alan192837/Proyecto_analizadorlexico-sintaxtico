@@ -1,0 +1,26 @@
+LISTA DE TOKENS
+----------------------------------------
+Renglon: 5, Lexema: entero, Token: ENTERO, REF: 101
+Renglon: 5, Lexema: a, Token: ID, REF: 300
+Renglon: 5, Lexema: =, Token: ASIGNAR, REF: 84
+Renglon: 5, Lexema: diez, Token: LITERAL_CADENA, REF: 202
+Renglon: 6, Lexema: entero, Token: ENTERO, REF: 101
+Renglon: 6, Lexema: a, Token: ID, REF: 300
+Renglon: 6, Lexema: =, Token: ASIGNAR, REF: 84
+Renglon: 6, Lexema: verdadero, Token: VERDADERO, REF: 108
+Renglon: 6, Lexema: ;, Token: PUNTOCOM, REF: 79
+Renglon: 7, Lexema: logico, Token: LOGICO_TIPO, REF: 103
+Renglon: 7, Lexema: c, Token: ID, REF: 301
+Renglon: 7, Lexema: =, Token: ASIGNAR, REF: 84
+Renglon: 7, Lexema: verdadero, Token: VERDADERO, REF: 108
+Renglon: 7, Lexema: ;, Token: PUNTOCOM, REF: 79
+Renglon: 8, Lexema: mostrar, Token: MOSTRAR, REF: 106
+Renglon: 8, Lexema: (, Token: PAR_IZQ, REF: 75
+Renglon: 8, Lexema: d, Token: ID, REF: 302
+Renglon: 8, Lexema: ), Token: PAR_DER, REF: 76
+Renglon: 8, Lexema: ;, Token: PUNTOCOM, REF: 79
+Renglon: 9, Lexema: mostrar, Token: MOSTRAR, REF: 106
+Renglon: 9, Lexema: (, Token: PAR_IZQ, REF: 75
+Renglon: 9, Lexema: a, Token: ID, REF: 300
+Renglon: 9, Lexema: ), Token: PAR_DER, REF: 76
+Renglon: 9, Lexema: ;, Token: PUNTOCOM, REF: 79
